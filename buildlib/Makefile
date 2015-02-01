@@ -26,43 +26,51 @@ PROGRAM	= main
 
 all:	$(PROGRAM)
 
-#
-# このような、推論規則は書けない。
-# 
-#.SUFFIXES:	.ads .adb
-#.ads.o:
-#	gcc -c $*.ads
-#.adb.o:
-#	gcc -c $*.adb
-#
+.SUFFIXES: 	.ada .spc .bdy
+.SUFFIXES: 	.adb .ads
+# この順にすると、.oをつくるときに、.adbが優先される。
 
+#####
+#####
 CHOPCMD	= gnatchop -w $<
-# $< は、最初の依存を示す。
-data1.ads:	data1.spc
+.spc.ads:
 	$(CHOPCMD)
-data2.ads:	data2.spc
+.ada.ads:
 	$(CHOPCMD)
-mathlib.ads:	mathlib.ada
+.ada.adb:
 	$(CHOPCMD)
-mathlib.adb:	mathlib.ada
+.bdy.adb:
 	$(CHOPCMD)
-parent-child.adb:	child.ada
-	$(CHOPCMD)
-parent.adb:	parent.ada
+# 名前が変わるもの、副単位の子のファイルを記載する。
+parent-child.adb:     child.ada
 	$(CHOPCMD)
 
+#####
+#####
 COMPCMD = gcc $(ACOPT) -c $<
-# ターゲット	生成元(最初の依存)	その他の依存
-data1.o:	data1.ads
+# .SUFFIXESの順番により、.adb.oのほうが優先される。気休めだが。
+# (ここに書いた順番ではない)
+.ads.o:
 	$(COMPCMD)
-data2.o:	data2.ads
+.adb.o:
 	$(COMPCMD)
+#
+# 個別ルールの書式：
+# ターゲット	生成元(最初の依存) \
+		その他の依存
+#data1.o:	data1.ads
+#	$(COMPCMD)
+#data2.o:	data2.ads
+#	$(COMPCMD)
 parent.o:	parent.adb \
 		data1.ads data2.ads mathlib.ads parent-child.adb
 	$(COMPCMD)
 mathlib.o:	mathlib.adb \
 		mathlib.ads
 	$(COMPCMD)
+
+#####
+#####
 #
 #Adaのメイン副文を直接実行するプログラムを作る場合
 #parent:	$(ABOJS)
